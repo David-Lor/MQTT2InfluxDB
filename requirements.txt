@@ -1,0 +1,7 @@
+paho-mqtt==1.5.0  # mqtt connector
+influxdb==5.2.3  # influxdb connector
+redis==3.3.11  # redis connector
+dotenv-settings-handler==0.0.3  # Settings Handler
+python-dotenv==0.10.3  # .env file loader
+pydantic==1.3  # data classes
+loguru==0.4.0  # logging
