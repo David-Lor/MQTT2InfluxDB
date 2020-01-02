@@ -1,7 +1,15 @@
 # MQTT2InfluxDB
 
-Service that subscribes to one or multiple MQTT topics and insert the received messages on InfluxDB,
+Python Service that subscribes to one or multiple MQTT topics and insert the received messages on InfluxDB,
 using a Redis DB as a queue to bulk insert messages on Influx, and keep them during Influx server downtime.
+
+- [Requirements](#requirements)
+- [Changelog](#changelog)
+- [TODO](#todo)
+- [FAQ](#faq)
+- [Settings](#settings)
+- [Data structure](#data-structure)
+- [Installing & running](#installing--running)
 
 ## Requirements
 
@@ -13,7 +21,35 @@ using a Redis DB as a queue to bulk insert messages on Influx, and keep them dur
 
 ## Changelog
 
-- 0.0.1 - Initial version (base functional code, ...)
+- 0.0.1 - Initial version (functional code)
+
+## TODO
+
+- Support MQTT authentication & SSL
+- Set Redis optional (Redis connector be a mocked class with a Python list to store messages)
+- Support Redis authentication
+- Support InfluxDB authentication
+- Unit & integration tests
+
+## FAQ
+
+- **Why is this even a thing?**
+
+  When using MQTT for IoT communication, I found useful to have all the messages registered on some persistent storage.
+  This allows me to search through topics and see their context. And most important, can create statistics for
+  monitorized data, and even analytics and graphs, using InfluxDB + Chronograf, Grafana or other similar tools.
+
+- **Why is Redis required?**
+
+  On my particular setup scenario, the server that will hold the data will not be always available, while MQTT messages
+  get sent 24/7, and this service is running on a 24/7 device. A simpler solution, as a Python list, could be used,
+  but preferred to externalize it on a Redis queue.
+  
+  This can be useful if this service is down, restarts or even if the device running it restarts,
+  since Redis can persist the data on disk (must be configured on Redis).
+  
+  Other advantage is to do bulk insertions on InfluxDB, instead of performing a request by each single message received
+  on MQTT.
 
 ## Settings
 
@@ -45,18 +81,59 @@ Settings can be defined through environment variables or using a `.env` file (lo
 
 - `LOG_LEVEL`: level of the internal logger (default: `INFO`)
 
-## Installing
+## Data structure
+
+```json
+{
+    "measurement": "mqtt",
+    "tags": {
+        "topic": "{topic}",
+        "qos": {qos}
+    },
+    "time": "2020-01-02T16:20:00Z,
+    "fields": {
+        "payload": "1.2345",
+        "payload_number": 1.2345
+    }
+}
+```
+
+- `measurement` is the same for all MQTT messages (`mqtt` by default)
+- `fields.payload` stores the payload as string
+- the payload tries to be converted to:
+    - number -> `fields.payload_number`
+    - json -> `fields.payload_json`
+    - boolean -> `fields.payload_bool`
+
+## Installing & Running
 
 The recommended method to install is using the [Python-Autoclonable-App](https://hub.docker.com/r/davidlor/python-autoclonable-app/) image.
 
-### Running tests
-
-Tests are integration tests, requiring MQTT, Redis & Influx servers deployed.
+### Run through Docker with Python-Autoclonable-App image
 
 ```bash
-# After cloning...
+# TODO
+```
+
+### Run through Docker-Compose
+
+```bash
+git clone https://github.com/David-Lor/MQTT2InfluxDB.git
+cd MQTT2InfluxDB/tools/deployment/mqtt2influxdb
+docker-compose up -d
+```
+
+### Run locally
+
+```bash
+git clone https://github.com/David-Lor/MQTT2InfluxDB.git
 cd MQTT2InfluxDB
-pip install -r tests/requirements.txt
-pytest
+
+# Set your environment variables
+cp sample.env .env
+nano .env
+
+# Run
+python3 .
 ```
 

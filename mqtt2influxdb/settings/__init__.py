@@ -4,6 +4,7 @@ Load settings from dotenv file or environment variables
 
 # # Native # #
 import uuid
+from typing import Optional
 
 # # Installed # #
 from dotenv_settings_handler import BaseSettingsHandler
@@ -35,6 +36,11 @@ class MQTTSettings(BaseSettings):
 class InfluxSettings(BaseSettings):
     host: str = "localhost"
     port: int = 8086
+    username: Optional[str]
+    password: Optional[str]
+    database: str = "mqtt2influxdb"
+    measurement: str = "mqtt"
+    write_freq: float = 60
 
     class Config(BaseSettings.Config):
         env_prefix = "INFLUX_"
