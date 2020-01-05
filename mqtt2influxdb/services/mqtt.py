@@ -40,15 +40,24 @@ class MQTTClient(paho.mqtt.client.Client):
 
     def connect(self, *args, **kwargs):
         logger.info(f"Connecting to MQTT on {settings.broker}:{settings.port}...")
+
+        if settings.username and settings.password:
+            self.username_pw_set(username=settings.username, password=settings.password)
+
+        if settings.ssl:
+            self.tls_set(
+                ca_certs=settings.ca_cert_file,
+                certfile=settings.cert_file,
+                keyfile=settings.key_file
+            )
+            logger.info("Set TLS for connecting")
+
         super().connect(
             host=settings.broker,
             port=settings.port,
             keepalive=settings.keepalive,
             *args, **kwargs
         )
-
-        for topic in self.topics:
-            self.subscribe(topic, settings.qos)
 
     def disconnect(self, *args, **kwargs):
         super().disconnect(*args, **kwargs)
@@ -60,6 +69,9 @@ class MQTTClient(paho.mqtt.client.Client):
     def _on_conect_callback(self, *args):
         logger.info("MQTT connected!")
 
+        for topic in self.topics:
+            self.subscribe(topic, settings.qos)
+
     def _on_disconnect_callback(self, *args):
         logger.info("MQTT disconnected!")
 
@@ -67,6 +79,7 @@ class MQTTClient(paho.mqtt.client.Client):
         paho_message = next(a for a in args if isinstance(a, PahoMQTTMessage))
         mqtt_message: MQTTMessage = paho_mqtt_2_mqtt_message(paho_message)
         string_message: str = mqtt_message_2_string(mqtt_message)
+
         # TODO Ensure payload is string and not arbitrary binary data
         # TODO short payload on debug
         logger.debug(f"Rx @ {mqtt_message.topic} : {mqtt_message.payload}")

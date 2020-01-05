@@ -21,10 +21,12 @@ using a Redis DB as a queue to bulk insert messages on Influx, and keep them dur
 
 ## Changelog
 
+- 0.0.2 - Add support for authentication & SSL to MQTT
 - 0.0.1 - Initial version (functional code)
 
 ## TODO
 
+- Fix insertion of JSON with booleans (crashes data writing into Influx)
 - Handle errors on all connectors (MQTT, Redis, Influx)
 - Add locks to Redis while reading/writing to the queue
 - Only insert string payloads and not arbitrary binary data
