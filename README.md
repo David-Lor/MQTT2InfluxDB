@@ -25,8 +25,12 @@ using a Redis DB as a queue to bulk insert messages on Influx, and keep them dur
 
 ## TODO
 
+- Handle errors on all connectors (MQTT, Redis, Influx)
+- Add locks to Redis while reading/writing to the queue
+- Only insert string payloads and not arbitrary binary data
 - Support MQTT authentication & SSL
-- Set Redis optional (Redis connector be a mocked class with a Python list to store messages)
+- Shorter payload debug logging records?
+- Set Redis optional (Redis connector being a mocked class with a Python list to store messages)
 - Support Redis authentication
 - Support InfluxDB authentication
 - Unit & integration tests
@@ -50,6 +54,17 @@ using a Redis DB as a queue to bulk insert messages on Influx, and keep them dur
   
   Other advantage is to do bulk insertions on InfluxDB, instead of performing a request by each single message received
   on MQTT.
+
+- **Why not using Telegraf?**
+
+  Telegraf is part of the Influx stack, as a counterpart of Logstash on the Elastic stack.
+  It [can subscribe to MQTT](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/mqtt_consumer) and insert the received messages on Influx, but is not very flexible when dealing with different types of variables.
+
+- **Why parsing & storing the payload?**
+
+  By default, payloads are read as strings, but they get converted to numbers, booleans or JSON if possible.
+  InfluxDB is not very friendly with string to number parsing during queries to create, for example, graphs in Chronograf.
+  That's why all the messages get their payload parsed to the closest type and stored on a different field.
 
 ## Settings
 
@@ -90,7 +105,7 @@ Settings can be defined through environment variables or using a `.env` file (lo
         "topic": "{topic}",
         "qos": {qos}
     },
-    "time": "2020-01-02T16:20:00Z,
+    "time": "2020-01-02T16:20:00Z",
     "fields": {
         "payload": "1.2345",
         "payload_number": 1.2345
