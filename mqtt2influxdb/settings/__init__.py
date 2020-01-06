@@ -28,6 +28,12 @@ class MQTTSettings(BaseSettings):
     client_id: str = "MQTT2InfluxDB_" + client_id
     keepalive: int = 60
     qos: int = 0
+    username: Optional[str]
+    password: Optional[str]
+    ssl: bool = False
+    ca_cert_file: Optional[str]
+    cert_file: Optional[str]
+    key_file: Optional[str]
 
     class Config(BaseSettings.Config):
         env_prefix = "MQTT_"
